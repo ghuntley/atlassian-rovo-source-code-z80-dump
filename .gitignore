@@ -1,0 +1,26 @@
+# Large binary files
+acli
+acli_disassembly.asm
+embedded_archive.zip
+rovodev_archive.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

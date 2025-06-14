@@ -333,6 +333,8 @@ The entire process is reproducible using the provided tools and scripts:
 2. **`acli_analysis.md`** - Detailed technical analysis
 3. **`ROVO_EXTRACTED_SOURCE_INDEX.md`** - Source code catalog
 
+**Note**: The original `acli` binary (53MB) is not included in this repository due to GitHub file size limits. The extracted source code and analysis are complete and available.
+
 ## Conclusion
 
 This reverse engineering effort successfully extracted the complete Rovo Dev AI agent implementation from the `acli` binary, revealing:
