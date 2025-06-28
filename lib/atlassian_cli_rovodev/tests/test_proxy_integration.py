@@ -11,8 +11,8 @@ from nemo.agent import get_model
 from nemo.cli import _run_agent
 from rovodev.common.agent import create_agent_factory
 from rovodev.common.config import save_config
-from rovodev.common.config_model import RovoDevConfig
-from rovodev.common.exceptions import EntitlementCheckFailed, RateLimitExceededError, RovoDevError
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
+from rovodev.common.exceptions import EntitlementCheckFailed, RateLimitExceededError, AIAgentError # Changed RovoDevError
 from rovodev.modules.adaptive_fallback_model import AdaptiveFallbackModel
 from rovodev.modules.usage import get_usage
 
@@ -31,7 +31,7 @@ BASE_HEADERS = {
 def get_agent_objects(tmp_path):
     """Fixture to return an agent factory and agent instance."""
     nemo.AUTH_METHOD = "api_token"
-    config = RovoDevConfig()
+    config = AIAgentConfig() # Changed RovoDevConfig
     config_path = str(tmp_path / "config.yml")
     save_config(config, config_path)
     agent_factory = create_agent_factory(config, config_path, interactive=True)
@@ -64,7 +64,7 @@ async def test_llm_request_entitlement_check_failure(mock_ai_gateway_headers, tm
     """Test that the entitlement check fails when the user is not entitled."""
     agent_factory, agent = get_agent_objects(tmp_path)
 
-    with pytest.raises(RovoDevError):
+    with pytest.raises(AIAgentError): # Changed RovoDevError
         await _run_agent(agent_factory=agent_factory, problem_statement="List your tools", agent_instance=agent)
 
 

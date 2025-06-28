@@ -250,22 +250,25 @@ def test_help_table_formatting():
 
 def test_internal_command():
     registry = CommandRegistry()
+    registry._commands.clear() # Ensure clean state for this specific test
 
+    # Test that a command with disable_for_external=True is NOT registered
     @registry.register(
-        "/random_internal_command", None, "Test command", disable_for_external=True, user_email="foo@atlassian.com"
+        "/command_disabled_external", None, "Test command", disable_for_external=True # user_email removed as it's now irrelevant for this case
     )
-    def test_internal_command():
+    def test_disabled_command():
         pass
 
-    assert "/random_internal_command" in registry.commands
+    assert "/command_disabled_external" not in registry.commands
 
+    # Test that a command with disable_for_external=False (default) IS registered
     @registry.register(
-        "/random_external_command", "sub", "Test subcommand", disable_for_external=True, user_email="foo@bar.com"
+        "/command_enabled_external", "sub", "Test subcommand" # disable_for_external defaults to False
     )
-    def test_external_command():
+    def test_enabled_command():
         pass
 
-    assert "/random_external_command" not in registry.commands
+    assert "/command_enabled_external" in registry.commands
 
 
 def test_extended_help():

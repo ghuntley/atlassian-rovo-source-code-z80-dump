@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from nemo.utils import MCPServerHTTP, MCPServerStdio
 from rovodev.common.config_versions import BaseConfig
-from rovodev.common.config_versions.v1 import RovoDevConfigV1
+from rovodev.common.config_versions.v1 import AIAgentConfigV1 # Changed RovoDevConfigV1
 
 
 class MCPServerStdioConfig(BaseModel, MCPServerStdio):
@@ -26,4 +26,4 @@ class MCPServersFileConfig(BaseConfig):
     mcp_servers: dict[str, MCPServerHTTP | MCPServerStdioConfig]
 
 
-RovoDevConfig = RovoDevConfigV1
+AIAgentConfig = AIAgentConfigV1 # Changed RovoDevConfig

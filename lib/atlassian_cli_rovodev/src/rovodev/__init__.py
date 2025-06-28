@@ -1,4 +1,4 @@
-"""Rovo Dev CLI is a command line interface to the Atlassian Rovo Dev agent."""
+"""AI Agent CLI is a command line interface to a generic AI agent.""" # Changed docstring
 
 # pylint: disable=wrong-import-position
 
@@ -23,24 +23,24 @@ os.environ["LOGFIRE_INSPECT_ARGUMENTS"] = "false"
 os.environ["LOGFIRE_IGNORE_NO_CONFIG"] = "1"
 os.environ["TERMINAL_WIDTH"] = "120"
 
-USER_EMAIL = os.getenv("USER_EMAIL", "")
-USER_API_TOKEN = os.getenv("USER_API_TOKEN", "")
-IS_INTERNAL_USER = USER_EMAIL.endswith("@atlassian.com")
-PIPELINES_JWT_TOKEN = os.getenv("PIPELINES_JWT_TOKEN", "")
+USER_EMAIL = os.getenv("USER_EMAIL", "") # Kept for potential generic use
+USER_API_TOKEN = os.getenv("USER_API_TOKEN", "") # Kept for potential generic use
+IS_INTERNAL_USER = False # Defaulted to False, was Atlassian-specific
+# PIPELINES_JWT_TOKEN = os.getenv("PIPELINES_JWT_TOKEN", "") # Removed Atlassian-specific token
 
-ROVODEV_PATH = Path.home() / ".rovodev"
-DEFAULT_CONFIG_PATH = str(ROVODEV_PATH / "config.yml")
-DEFAULT_LOG_PATH = str(ROVODEV_PATH / "rovodev.log")
-DEFAULT_MCP_CONFIG_PATH = str(ROVODEV_PATH / "mcp.json")
-DEFAULT_PROMPT_HISTORY_PATH = str(ROVODEV_PATH / "prompt_history")
-DEFAULT_SESSIONS_PATH = str(ROVODEV_PATH / "sessions")
+AGENT_PATH = Path.home() / ".ai_agent" # Renamed from ROVODEV_PATH
+DEFAULT_CONFIG_PATH = str(AGENT_PATH / "config.yml")
+DEFAULT_LOG_PATH = str(AGENT_PATH / "agent.log") # Renamed log file
+DEFAULT_MCP_CONFIG_PATH = str(AGENT_PATH / "mcp.json")
+DEFAULT_PROMPT_HISTORY_PATH = str(AGENT_PATH / "prompt_history")
+DEFAULT_SESSIONS_PATH = str(AGENT_PATH / "sessions")
 
-Path(ROVODEV_PATH).mkdir(parents=True, exist_ok=True)
+Path(AGENT_PATH).mkdir(parents=True, exist_ok=True) # Use new AGENT_PATH
 
 # Startup checks:
 # Check if git is installed and exit gracefully if not
 if not shutil.which("git"):
-    rich.print("[yellow]Git is not installed or not on your PATH. Please install Git to use Rovo Dev CLI.[/yellow]")
+    rich.print("[yellow]Git is not installed or not on your PATH. Please install Git to use this CLI.[/yellow]") # Generic message
     raise SystemExit(1)
 
 
@@ -51,7 +51,7 @@ except subprocess.CalledProcessError:
 
 VERSION_INFO = "\n".join(
     [
-        f"Rovo Dev CLI: {__version__}",
+        f"AI Agent CLI: {__version__}", # Generic name
         f"Operating System: {platform.system()} {platform.release()} ({platform.machine()})",
         f"Git: {git_version}",
     ]

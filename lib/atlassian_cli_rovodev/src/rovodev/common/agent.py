@@ -10,7 +10,7 @@ from nemo.utils import MCPServerHTTP, MCPServerStdio
 from rovodev import USER_API_TOKEN, USER_EMAIL
 from rovodev.common import dynamic_configuration
 from rovodev.common.config import load_mcp_servers_from_json, save_config
-from rovodev.common.config_model import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
 from rovodev.modules.memory import get_memory_instructions
 from rovodev.modules.tool_permissions import ToolPermissionManager
 from rovodev.ui.components import Choice, user_menu_panel_sync
@@ -33,7 +33,7 @@ def check_mcp_server_allowed(server_id: str) -> bool:
     )
 
 
-def create_agent_factory(config: RovoDevConfig, config_file: str, interactive: bool = True) -> AcraMini:
+def create_agent_factory(config: AIAgentConfig, config_file: str, interactive: bool = True) -> AcraMini: # Changed RovoDevConfig
     """Create the agent factory."""
     # Ensure that user has agreed to allow the use of any additional MCP servers
     additional_mcp_servers = []
@@ -54,13 +54,14 @@ def create_agent_factory(config: RovoDevConfig, config_file: str, interactive: b
         else:
             additional_mcp_servers.append(mcp_server)
 
-    b64_email_token = base64.b64encode(f"{USER_EMAIL}:{USER_API_TOKEN}".encode()).decode()
-    auth_header = f"Basic {b64_email_token}"
-    if USER_EMAIL and USER_API_TOKEN:
-        additional_mcp_servers.append(
-            MCPServerHTTP("https://mcp.atlassian.com/v1/native/mcp", {"Authorization": auth_header})
-        )
-        additional_mcp_servers[-1].exclude_tools = ["atlassianUserInfo"]
+    # b64_email_token = base64.b64encode(f"{USER_EMAIL}:{USER_API_TOKEN}".encode()).decode() # Potentially generic auth header
+    # auth_header = f"Basic {b64_email_token}" # Potentially generic auth header
+    # Removed hardcoded Atlassian MCP server addition:
+    # if USER_EMAIL and USER_API_TOKEN:
+    #     additional_mcp_servers.append(
+    #         MCPServerHTTP("https://mcp.atlassian.com/v1/native/mcp", {"Authorization": auth_header})
+    #     )
+    #     additional_mcp_servers[-1].exclude_tools = ["atlassianUserInfo"]
     for mcp_server in additional_mcp_servers:
         if isinstance(mcp_server, MCPServerStdio):
             # Redirect MCP server logs to the log file

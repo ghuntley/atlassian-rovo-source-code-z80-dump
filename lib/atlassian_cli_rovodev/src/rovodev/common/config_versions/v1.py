@@ -1,4 +1,4 @@
-"""RovoDev CLI Configuration models."""
+"""AI Agent CLI Configuration models.""" # Changed RovoDev
 
 from typing import Literal
 
@@ -126,30 +126,31 @@ class ToolPermissionsConfig(BaseConfig):
             "expand_folder": "allow",
             "grep_file_content": "allow",
             "grep_file_paths": "allow",
-            "getAccessibleAtlassianResources": "allow",
-            "getConfluenceSpaces": "allow",
-            "getConfluencePages": "allow",
-            "getPagesInConfluenceSpace": "allow",
-            "getConfluencePageAncestors": "allow",
-            "getConfluencePageFooterComments": "allow",
-            "getConfluencePageInlineComments": "allow",
-            "getConfluencePageDescendants": "allow",
-            "searchConfluenceUsingCql": "allow",
-            "getJiraIssue": "allow",
-            "getTransitionsForJiraIssue": "allow",
-            "lookupJiraAccountId": "allow",
-            "searchJiraIssuesUsingJql": "allow",
-            "getJiraIssueRemoteIssueLinks": "allow",
-            "getVisibleJiraProjects": "allow",
-            "getJiraProjectIssueTypesMetadata": "allow",
-            "createConfluencePage": "ask",
-            "updateConfluencePage": "ask",
-            "createConfluenceFooterComment": "ask",
-            "createConfluenceInlineComment": "ask",
-            "editJiraIssue": "ask",
-            "createJiraIssue": "ask",
-            "transitionJiraIssue": "ask",
-            "addCommentToJiraIssue": "ask",
+            # Removed Atlassian-specific tools from default permissions:
+            # "getAccessibleAtlassianResources": "allow",
+            # "getConfluenceSpaces": "allow",
+            # "getConfluencePages": "allow",
+            # "getPagesInConfluenceSpace": "allow",
+            # "getConfluencePageAncestors": "allow",
+            # "getConfluencePageFooterComments": "allow",
+            # "getConfluencePageInlineComments": "allow",
+            # "getConfluencePageDescendants": "allow",
+            # "searchConfluenceUsingCql": "allow",
+            # "getJiraIssue": "allow",
+            # "getTransitionsForJiraIssue": "allow",
+            # "lookupJiraAccountId": "allow",
+            # "searchJiraIssuesUsingJql": "allow",
+            # "getJiraIssueRemoteIssueLinks": "allow",
+            # "getVisibleJiraProjects": "allow",
+            # "getJiraProjectIssueTypesMetadata": "allow",
+            # "createConfluencePage": "ask",
+            # "updateConfluencePage": "ask",
+            # "createConfluenceFooterComment": "ask",
+            # "createConfluenceInlineComment": "ask",
+            # "editJiraIssue": "ask",
+            # "createJiraIssue": "ask",
+            # "transitionJiraIssue": "ask",
+            # "addCommentToJiraIssue": "ask",
         },
         description="Permission settings for specific tools",
     )
@@ -157,7 +158,7 @@ class ToolPermissionsConfig(BaseConfig):
     allowed_mcp_servers: list[str] = Field(default_factory=list, description="List of allowed MCP server names")
 
 
-class RovoDevConfigV1(BaseConfig):
+class AIAgentConfigV1(BaseConfig): # Changed RovoDevConfigV1
     """Root configuration model V1."""
 
     version: Literal[1] = 1

@@ -12,13 +12,13 @@ import nemo
 from rovodev import __version__
 from rovodev.commands.run.command import handle_models_command, run
 from rovodev.common.config import load_config
-from rovodev.common.config_model import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
 from rovodev.rovodev_cli import app
 
 
 @pytest.fixture
 def minimal_config(tmp_path):
-    return RovoDevConfig()
+    return AIAgentConfig() # Changed RovoDevConfig
 
 
 def test_load_config(tmp_path):
@@ -71,7 +71,7 @@ def test_load_config_defaults(tmp_path):
     assert result.agent.temperature == 0.3
     assert result.agent.experimental.enable_deep_plan_tool is False
     assert result.agent.experimental.enable_delegation_tool is False
-    assert Path(result.sessions.persistence_dir).as_posix().endswith(".rovodev/sessions")
+    assert Path(result.sessions.persistence_dir).as_posix().endswith(".ai_agent/sessions") # Changed path
 
 
 def test_run(mock_get_model, tmp_path):

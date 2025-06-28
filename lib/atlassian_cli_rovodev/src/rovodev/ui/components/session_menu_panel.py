@@ -28,7 +28,7 @@ from rich.panel import Panel
 from nemo.constants import DEFAULT_PANEL_WIDTH
 from nemo.models import ForkData, SessionMetadata
 from nemo.utils.logging import truncate_message
-from rovodev.modules.analytics.instrumentation.session import track_session_deleted, track_session_forked
+# from rovodev.modules.analytics.instrumentation.session import track_session_deleted, track_session_forked # Removed
 from rovodev.ui.components.user_menu_panel import Choice, user_menu_panel
 
 if TYPE_CHECKING:
@@ -159,12 +159,12 @@ async def session_menu_panel(
         )
         (fork_path / "metadata.json").write_text(metadata.model_dump_json(indent=2))
 
-        # Track the fork event
-        track_session_forked(
-            parent_session_id=session.session_id,
-            new_session_id=fork_session_id,
-            title=title,
-        )
+        # Track the fork event - REMOVED
+        # track_session_forked(
+        #     parent_session_id=session.session_id,
+        #     new_session_id=fork_session_id,
+        #     title=title,
+        # )
 
         # Update the session information
         session.session_id = fork_session_id
@@ -260,11 +260,11 @@ async def session_menu_panel(
             message=f"Are you sure you want to delete session '{session_to_delete.title}'?",
         )
         if response:
-            # Track the deletion event before actually deleting
-            track_session_deleted(
-                session_id=session_to_delete.session_id,
-                title=session_to_delete.title,
-            )
+            # Track the deletion event before actually deleting - REMOVED
+            # track_session_deleted(
+            #     session_id=session_to_delete.session_id,
+            #     title=session_to_delete.title,
+            # )
 
             if session_to_delete.path and session_to_delete.path.exists():
                 shutil.rmtree(session_to_delete.path)

@@ -12,7 +12,7 @@ from rovodev.ui.components import Choice, user_menu_panel_sync
 console = Console()
 
 INSTRUCTIONS_MESSAGE = """[bright_black]Speed up your development flow with pre-created prompts that can be run anytime.
-You can also view, edit, and create new instructions in the [bold].rovodev/instructions.yml[/bold] file.[/bright_black]
+You can also view, edit, and create new instructions in the [bold].ai_agent/instructions.yml[/bold] file.[/bright_black]
 
 Select an instruction to run:"""
 
@@ -40,18 +40,18 @@ def get_config_locations(sub_path: str) -> list[Path]:
     current = Path.cwd()
     while current.parent != current:  # Stop at root directory
         if (current / ".git").exists():
-            locations.append(current / ".rovodev" / sub_path)
+            locations.append(current / ".ai_agent" / sub_path) # Changed path
             break
         current = current.parent
 
-    # Add current directory .rovodev
-    locations.append(Path.cwd() / ".rovodev" / sub_path)
+    # Add current directory .ai_agent
+    locations.append(Path.cwd() / ".ai_agent" / sub_path) # Changed path
 
-    # Add current file directory .rovodev
+    # Add current file directory (e.g., bundled instructions)
     locations.append(Path(__file__).parent / "instructions" / sub_path)
 
     # Add user home config
-    locations.append(Path.home() / ".rovodev" / sub_path)
+    locations.append(Path.home() / ".ai_agent" / sub_path) # Changed path
 
     return locations
 

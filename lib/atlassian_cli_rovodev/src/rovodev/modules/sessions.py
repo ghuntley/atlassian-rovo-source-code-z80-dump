@@ -15,8 +15,8 @@ from nemo.context import DefaultSessionContext
 from nemo.models import SessionMetadata
 from rovodev.ui.components import session_menu_panel
 
-# Import session instrumentation
-from .analytics.instrumentation.session import track_session_created, track_session_forked, track_session_switched
+# Import session instrumentation - REMOVED as analytics module was deleted
+# from .analytics.instrumentation.session import track_session_created, track_session_forked, track_session_switched
 
 default_context_limit = 200000
 
@@ -203,14 +203,15 @@ def handle_sessions_command(
 
     selected_session, is_new_session = asyncio.run(session_menu_panel(sessions, current_session_id, persistence_dir))
 
-    # Add instrumentation for session events
+    # Add instrumentation for session events - REMOVED as analytics module was deleted
     if is_new_session and not selected_session:
         # Creating a new session - persistence will happen when session is actually used
         new_session = Session()
-        track_session_created(new_session.session_id)
+        # track_session_created(new_session.session_id) # Removed
         return new_session, is_new_session
     elif selected_session and selected_session.session_id != current_session_id:
         # Switching to an existing session
-        track_session_switched(current_session_id, selected_session.session_id)
+        # track_session_switched(current_session_id, selected_session.session_id) # Removed
+        pass # Keep the logic flow, just don't track
 
     return selected_session, is_new_session

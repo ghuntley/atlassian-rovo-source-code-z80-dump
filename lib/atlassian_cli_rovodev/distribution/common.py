@@ -13,7 +13,8 @@ import pyinstaller_versionfile
 import requests
 
 import rovodev
-from rovodev.common.config import RovoDevConfig, save_config
+from rovodev import AGENT_PATH # Import AGENT_PATH
+from rovodev.common.config import AIAgentConfig, save_config # Changed RovoDevConfig
 
 ARCH_MAPPING: Final = {
     "amd64": "amd64",
@@ -32,13 +33,13 @@ def get_arch() -> str:
         return machine
 
 
-APP_NAME: Final = "atlassian_cli_rovodev"
+APP_NAME: Final = "ai_agent_cli" # Changed from "atlassian_cli_rovodev"
 
 VERSION: Final = rovodev.__version__
-APP_NAME_FULL: Final = f"{APP_NAME}-{VERSION}-{platform.system().lower()}-{get_arch()}"
-APP_NAME_LATEST: Final = f"{APP_NAME}-latest-{platform.system().lower()}-{get_arch()}"
-PROJECT_ROOT: Final = Path(__file__).parent.parent
-REPO_ROOT: Final = PROJECT_ROOT.parent.parent
+APP_NAME_FULL: Final = f"{APP_NAME}-{VERSION}-{platform.system().lower()}-{get_arch()}" # Uses new APP_NAME
+APP_NAME_LATEST: Final = f"{APP_NAME}-latest-{platform.system().lower()}-{get_arch()}" # Uses new APP_NAME
+PROJECT_ROOT: Final = Path(__file__).parent.parent # This is .../distribution, so PROJECT_ROOT is .../atlassian_cli_rovodev
+REPO_ROOT: Final = PROJECT_ROOT.parent.parent # This is .../lib
 DIST: Final = Path(REPO_ROOT, "dist")
 DIST_PATH: Final = Path(DIST, APP_NAME_FULL)
 EXE_NAME: Final[str] = f"{APP_NAME}.exe" if platform.system() == "Windows" else APP_NAME
@@ -79,7 +80,7 @@ def get_ripgrep_url() -> str:
 
 def e2e_test():
     # reset the log file
-    log_file = Path.home() / ".rovodev" / "rovodev.log"
+    log_file = AGENT_PATH / "agent.log" # Changed path
     if log_file.exists():
         log_file.unlink(missing_ok=True)
 
@@ -88,10 +89,12 @@ def e2e_test():
         [f"{DIST}/{APP_NAME}/{EXE_NAME}", "run", "what is 1024 plus 1024"],
         capture_output=True,
         env=os.environ.copy()
-        | {
-            # This activates debug logging
-            "USER_EMAIL": "autofix-bot@atlassian.com",
-        },
+        # Removed Atlassian-specific email for debug logging.
+        # Debug logging will now depend on IS_INTERNAL_USER being True,
+        # which is currently defaulted to False.
+        # | {
+        #     "USER_EMAIL": "debug-user@example.com",
+        # },
     )
     output = result.stdout.decode() + "\n" + result.stderr.decode()
     print(output)
@@ -102,7 +105,7 @@ def e2e_test():
             print(f"Log file content:\n{log_output}")
 
     assert result.returncode == 0, f"Executable failed with return code {result.returncode}"
-    assert "Rovo Dev" in output, "Executable did not start correctly"
+    assert "AI Agent" in output, "Executable did not start correctly" # Changed "Rovo Dev"
     assert "2048" in output, "Executable did not return the expected result"
     assert "─ Error ─" not in output, "Executable returned an error"
 
@@ -114,13 +117,13 @@ def make_portable(publish: bool) -> Exception | BuildMetadata:
 
     try:
         # find the sdist archive and unpack it
-        archives = list(DIST.glob(rf"{APP_NAME}-{VERSION}.tar.gz"))
+        archives = list(DIST.glob(rf"{APP_NAME}-{VERSION}.tar.gz")) # APP_NAME is now generic
         assert len(archives) == 1
         shutil.unpack_archive(archives[0], DIST)
 
         build_metadata: Final = BuildMetadata(
-            company_name="Atlassian",
-            product_name="RovoDev CLI",
+            company_name="YourCompany", # Changed
+            product_name="AI Agent CLI", # Changed
             version=VERSION,
             portable_path=str(DIST_PATH),
         )
@@ -136,26 +139,26 @@ def make_portable(publish: bool) -> Exception | BuildMetadata:
         pyinstaller_versionfile.create_versionfile(
             output_file=str(PROJECT_ROOT / "build" / "exe_version.txt"),
             version=VERSION,
-            company_name=build_metadata.company_name,
-            file_description="RovoDev CLI",
-            product_name=build_metadata.product_name,
-            internal_name=APP_NAME,
-            original_filename=EXE_NAME,
-            legal_copyright="Copyright (c) Atlassian",
+            company_name=build_metadata.company_name, # Already "YourCompany"
+            file_description="AI Agent CLI", # Changed
+            product_name=build_metadata.product_name, # Already "AI Agent CLI"
+            internal_name=APP_NAME, # Already "ai_agent_cli"
+            original_filename=EXE_NAME, # Based on new APP_NAME
+            legal_copyright="Copyright (c) YourCompany", # Changed
             translations=[1033, 1252],
         )
 
         pyinstaller_command: Final = (
             "uv",
             "run",
-            "--package",
-            "atlassian-cli-rovodev",
+            "--package", # This refers to the package name on PyPI if it were published
+            "ai_agent_cli", # Changed from "atlassian-cli-rovodev"
             "pyinstaller",
-            f"--add-data={DIST}/{APP_NAME}-{VERSION}:{APP_NAME}",
-            f"--additional-hooks-dir={PROJECT_ROOT}/hooks",
-            f"--runtime-hook={PROJECT_ROOT}/hooks/runtime.py",
-            f"--copy-metadata={APP_NAME}",
-            f"--copy-metadata=pydantic_ai_slim",
+            f"--add-data={DIST}/{APP_NAME}-{VERSION}:{APP_NAME}", # APP_NAME is generic
+            f"--additional-hooks-dir={PROJECT_ROOT}/hooks", # Path relative to PROJECT_ROOT (atlassian_cli_rovodev)
+            f"--runtime-hook={PROJECT_ROOT}/hooks/runtime.py", # Path relative to PROJECT_ROOT
+            f"--copy-metadata={APP_NAME}", # APP_NAME is generic
+            f"--copy-metadata=pydantic_ai_slim", # This is a dependency, keep
             "--onedir",
             "--noconfirm",
             '--python-option="X utf8=1"',
@@ -176,8 +179,8 @@ def make_portable(publish: bool) -> Exception | BuildMetadata:
 
         # create default config file to skip agreement
         save_config(
-            RovoDevConfig(),
-            str(Path.home() / ".rovodev" / "config.yml"),
+            AIAgentConfig(), # Changed RovoDevConfig
+            str(AGENT_PATH / "config.yml"), # Changed path
         )
 
         # download ripgrep
@@ -222,36 +225,39 @@ def make_portable(publish: bool) -> Exception | BuildMetadata:
         pipelinesJwtToken = os.environ.get("PIPELINES_JWT_TOKEN")
 
         # if this is in CI but not a publish step, run the e2e test
-        if pipelinesJwtToken and not publish:
-            e2e_test()
+        # This CI-specific logic might be kept or removed depending on user's CI setup.
+        # For a generic template, it's often better to remove CI-specific assumptions.
+        # pipelinesJwtToken is also Atlassian specific.
+        # if pipelinesJwtToken and not publish:
+        #     e2e_test()
 
-        # if this is in CI and is a publish step, upload the ZIP archive to statlas
-        if pipelinesJwtToken and publish:
-            headers = {
-                "Authorization": f"Bearer {pipelinesJwtToken}",
-            }
-
-            with open(zip_path, "rb") as f:
-                response_upload_versioned = requests.put(
-                    f"https://statlas.prod.atl-paas.net/rovodev-cli/releases/{APP_NAME_FULL}.zip",
-                    headers=headers,
-                    data=f,
-                )
-                if response_upload_versioned.status_code != 200:
-                    raise Exception(
-                        f"Failed to upload the ZIP archive: {response_upload_versioned.status_code} {response_upload_versioned.text}"
-                    )
-
-            with open(zip_path, "rb") as f:
-                response_upload_latest = requests.put(
-                    f"https://statlas.prod.atl-paas.net/rovodev-cli/releases/{APP_NAME_LATEST}.zip",
-                    headers=headers,
-                    data=f,
-                )
-                if response_upload_latest.status_code != 200:
-                    raise Exception(
-                        f"Failed to upload the ZIP archive: {response_upload_latest.status_code} {response_upload_latest.text}"
-                    )
+        # Removed Atlassian-specific Statlas publishing logic
+        # if pipelinesJwtToken and publish:
+        #     headers = {
+        #         "Authorization": f"Bearer {pipelinesJwtToken}",
+        #     }
+        #
+        #     with open(zip_path, "rb") as f:
+        #         response_upload_versioned = requests.put(
+        #             f"https://statlas.prod.atl-paas.net/rovodev-cli/releases/{APP_NAME_FULL}.zip",
+        #             headers=headers,
+        #             data=f,
+        #         )
+        #         if response_upload_versioned.status_code != 200:
+        #             raise Exception(
+        #                 f"Failed to upload the ZIP archive: {response_upload_versioned.status_code} {response_upload_versioned.text}"
+        #             )
+        #
+        #     with open(zip_path, "rb") as f:
+        #         response_upload_latest = requests.put(
+        #             f"https://statlas.prod.atl-paas.net/rovodev-cli/releases/{APP_NAME_LATEST}.zip",
+        #             headers=headers,
+        #             data=f,
+        #         )
+        #         if response_upload_latest.status_code != 200:
+        #             raise Exception(
+        #                 f"Failed to upload the ZIP archive: {response_upload_latest.status_code} {response_upload_latest.text}"
+        #             )
 
         return build_metadata
 

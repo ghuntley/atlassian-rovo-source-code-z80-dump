@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from nemo.utils import MCPServerHTTP, MCPServerStdio
 from rovodev import DEFAULT_MCP_CONFIG_PATH
 from rovodev.common.config import add_yaml_config_documentation, load_config, load_mcp_servers_from_json, save_config
-from rovodev.common.config_model import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ agent.modelId: test-model\
 
 def test_default_config():
     """Test creating a default configuration."""
-    config = RovoDevConfig()
+    config = AIAgentConfig() # Changed RovoDevConfig
 
     # Test default values
     assert config.agent.model_id == "claude-sonnet-4@20250514"
@@ -76,7 +76,7 @@ def test_save_and_load_config(tmp_path):
     config_file = tmp_path / "config.yml"
 
     # Create a custom config
-    original_config = RovoDevConfig()
+    original_config = AIAgentConfig() # Changed RovoDevConfig
     original_config.tool_permissions.default = "deny"
 
     # Save it
@@ -95,7 +95,7 @@ def test_empty_config_file(tmp_path, mock_accept_terms_and_conditions):
     config_file.write_text("")
 
     config = load_config(config_file.as_posix())
-    assert isinstance(config, RovoDevConfig)
+    assert isinstance(config, AIAgentConfig) # Changed RovoDevConfig
     assert config.agent.model_id == "claude-sonnet-4@20250514"
 
 
@@ -162,7 +162,7 @@ def test_load_mcp_servers_from_json_empty_file(tmp_path):
 def test_add_yaml_config_documentation():
     """Test that documentation is correctly added to YAML config."""
     # Create a simple config
-    config = RovoDevConfig()
+    config = AIAgentConfig() # Changed RovoDevConfig
 
     # Generate basic YAML
     config_yaml = yaml.safe_dump(

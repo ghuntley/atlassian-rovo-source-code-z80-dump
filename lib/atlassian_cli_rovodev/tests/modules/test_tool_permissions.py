@@ -8,7 +8,7 @@ from prompt_toolkit.output import DummyOutput
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 
 from rovodev.common.config import load_config, save_config
-from rovodev.common.config_model import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
 from rovodev.common.config_versions.v1 import ToolPermissionsConfig
 from rovodev.modules.tool_permissions import ToolPermissionManager
 from rovodev.ui.components.user_menu_panel import Choice
@@ -28,7 +28,7 @@ def config_path(tmp_path):
 
 @pytest.fixture
 def config(config_path):
-    config = RovoDevConfig()
+    config = AIAgentConfig() # Changed RovoDevConfig
     config.tool_permissions = ToolPermissionsConfig.model_validate(
         {"default": "ask", "tools": {}, "bash": {"default": "ask", "commands": []}}
     )

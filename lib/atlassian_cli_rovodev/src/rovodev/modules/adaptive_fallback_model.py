@@ -13,7 +13,7 @@ from pydantic_ai.models import Model, ModelRequestParameters, ModelSettings, Str
 from pydantic_ai.models.fallback import FallbackModel
 
 from nemo.pruners import MidConversationPruner, WorkspaceViewPruner
-from rovodev.common.exceptions import RateLimitExceededError, RequestTooLargeError, RovoDevError, UnauthorizedError
+from rovodev.common.exceptions import RateLimitExceededError, RequestTooLargeError, AIAgentError, UnauthorizedError # Changed RovoDevError
 
 
 class FallbackOrRetry(Enum):
@@ -163,7 +163,7 @@ class AdaptiveFallbackModel(FallbackModel):
         if exceptions:
             raise self._process_exception(exceptions[-1])
         else:
-            raise RovoDevError("Failed to generate an LLM response.")
+            raise AIAgentError("Failed to generate an LLM response.") # Changed RovoDevError
 
     @asynccontextmanager
     async def request_stream(
@@ -218,7 +218,7 @@ class AdaptiveFallbackModel(FallbackModel):
         if exceptions:
             raise self._process_exception(exceptions[-1])
         else:
-            raise RovoDevError("Failed to generate an LLM response.")
+            raise AIAgentError("Failed to generate an LLM response.") # Changed RovoDevError
 
     def _handle_success(self, successful_model: Model) -> None:
         """Handle a successful request by moving the model to the front and updating fallback signal."""
@@ -228,8 +228,8 @@ class AdaptiveFallbackModel(FallbackModel):
         # Set fallback signal to prefer this model
         self.fallback_signal = -1 * self.fallback_threshold * self.success_preference_factor
 
-    def _process_exception(self, exception: Exception) -> RovoDevError:
-        """Process an exception and return an instance of RovoDevError."""
+    def _process_exception(self, exception: Exception) -> AIAgentError: # Changed RovoDevError
+        """Process an exception and return an instance of AIAgentError.""" # Changed RovoDevError
         if isinstance(exception, ModelHTTPError):
             if (
                 # Standard 413 error for request too large
@@ -246,13 +246,13 @@ class AdaptiveFallbackModel(FallbackModel):
             elif exception.status_code == 401:
                 return UnauthorizedError()
             elif exception.status_code == 500:
-                return RovoDevError(
+                return AIAgentError( # Changed RovoDevError
                     title="Internal Server Error",
                     message="An unexpected error occurred while processing your request. Please try again later.",
                 )
             elif exception.status_code in [503, 529]:
-                return RovoDevError(
+                return AIAgentError( # Changed RovoDevError
                     title="Service Unavailable",
                     message="The service is currently unavailable. Please try again later.",
                 )
-        return RovoDevError("Failed to generate an LLM response.")
+        return AIAgentError("Failed to generate an LLM response.") # Changed RovoDevError

@@ -48,9 +48,11 @@ async def run_mcp_servers_with_error_handling(agent: Agent[Any, Any]) -> AsyncIt
 def is_builtin_mcp_server(mcp_server: MCPServerHTTP | MCPServerStdio) -> bool:
     """Check if the MCP server is a built-in server."""
     if isinstance(mcp_server, MCPServerHTTP):
-        if "atlassian" in mcp_server.url:
-            return True
+        # Removed Atlassian-specific URL check for built-in HTTP MCP server.
+        # A generic template might define its own criteria for a built-in HTTP server if needed.
+        pass
     elif isinstance(mcp_server, MCPServerStdio):
+        # Assuming "nautilus" is the name of the bundled STDIO MCP server for this template.
         if "nautilus" in mcp_server.command or "nautilus" in mcp_server.args:
             return True
     return False

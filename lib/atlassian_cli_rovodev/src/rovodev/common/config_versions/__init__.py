@@ -1,4 +1,4 @@
-"""RovoDev CLI Configuration models."""
+"""AI Agent CLI Configuration models.""" # Changed RovoDev
 
 from pathlib import Path
 from typing import Annotated

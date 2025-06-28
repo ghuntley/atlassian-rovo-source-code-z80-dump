@@ -141,9 +141,11 @@ def handle_memory_command(command: str | None) -> str | None:
     """Handle the /memory command."""
     if command is None or command == "user":
         if command is None:
+            # For /memory (no args), open the workspace .agent.md
             memory_path = Path.cwd() / ".agent.md"
         else:
-            memory_path = Path.home() / ".rovodev" / ".agent.md"
+            # For /memory user, open the user-level .ai_agent/.agent.md
+            memory_path = Path.home() / ".ai_agent" / ".agent.md" # Changed path
         return open_file_in_editor(str(memory_path))
     # Otherwise, init was called
     return MEMORY_INIT_PROMPT

@@ -5,7 +5,7 @@ from pydantic_ai import ModelHTTPError
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
 from pydantic_ai.models import Model, ModelRequestParameters
 
-from rovodev.common.exceptions import RequestTooLargeError, RovoDevError
+from rovodev.common.exceptions import RequestTooLargeError, AIAgentError # Changed RovoDevError
 from rovodev.modules.adaptive_fallback_model import AdaptiveFallbackModel, FallbackOrRetry, default_fallback_on
 
 
@@ -104,7 +104,7 @@ async def test_all_models_fail(mock_model):
         fallback_cycles=2,
     )
 
-    with pytest.raises(RovoDevError) as exc_info:
+    with pytest.raises(AIAgentError) as exc_info: # Changed RovoDevError
         await model.request(
             messages=[ModelRequest(parts=[UserPromptPart(content="test")])],
             model_settings=None,
@@ -142,7 +142,7 @@ async def test_rate_limit_error_message(mock_model):
 
     model = AdaptiveFallbackModel(failing_model)
 
-    with pytest.raises(RovoDevError) as exc_info:
+    with pytest.raises(AIAgentError) as exc_info: # Changed RovoDevError
         await model.request(
             messages=[ModelRequest(parts=[UserPromptPart(content="test")])],
             model_settings=None,
@@ -251,7 +251,7 @@ async def test_unauthorized_error_message(mock_model):
 
     model = AdaptiveFallbackModel(failing_model)
 
-    with pytest.raises(RovoDevError) as exc_info:
+    with pytest.raises(AIAgentError) as exc_info: # Changed RovoDevError
         await model.request(
             messages=[ModelRequest(parts=[UserPromptPart(content="test")])],
             model_settings=None,

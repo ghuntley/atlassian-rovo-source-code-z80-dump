@@ -67,14 +67,14 @@ from rovodev.modules.analytics.instrumentation.command import track_command
 
 HELP_PREFIX = """\
 [bold]Tools[/bold]
-[bright_black]Rovo Dev uses a range of tools to best execute on your requests, simply ask Rovo Dev to complete a task \
-and it will use code navigation, search, and editing tools to best achieve your outcomes. Rovo Dev can perform actions \
-against your workspace and access your tasks and documents in Jira and Confluence. Rovo Dev will only complete actions \
+[bright_black]AI Agent uses a range of tools to best execute on your requests, simply ask AI Agent to complete a task \
+and it will use code navigation, search, and editing tools to best achieve your outcomes. AI Agent can perform actions \
+against your workspace and access your tasks and documents (if configured). AI Agent will only complete actions \
 it has permission to do so.[/bright_black]
 
 [bold]Commands[/bold]
-[bright_black]Commands allow you to quickly execute pre-defined Rovo Dev features.[/bright_black]
-"""
+[bright_black]Commands allow you to quickly execute pre-defined AI Agent features.[/bright_black]
+""" # Changed Rovo Dev
 
 
 class CommandRegistry:
@@ -100,7 +100,10 @@ class CommandRegistry:
         def decorator(func):
             assert command != "/help", "Command `/help` is reserved."
             assert sub_command != "help", "Subcommand `help` is reserved."
-            if (not disable_for_external) or user_email.endswith("@atlassian.com"):
+            # If disable_for_external is True, command is not registered in a generic template.
+            # User can change this logic or a config to enable such commands.
+            # The original check was: user_email.endswith("@atlassian.com")
+            if not disable_for_external:
                 assert (
                     sub_command not in self._commands[command]
                 ), f"Registry for {command}, {sub_command} already exists."

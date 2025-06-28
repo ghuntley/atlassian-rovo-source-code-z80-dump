@@ -12,50 +12,36 @@ from pydantic.fields import FieldInfo
 
 import nemo
 from nemo.utils import MCPServerHTTP, MCPServerStdio
-from rovodev import PIPELINES_JWT_TOKEN, USER_API_TOKEN, USER_EMAIL
-from rovodev.common.config_model import MCPServersFileConfig, RovoDevConfig
+from rovodev import USER_API_TOKEN, USER_EMAIL # Removed PIPELINES_JWT_TOKEN
+from rovodev.common.config_model import MCPServersFileConfig, AIAgentConfig # Changed RovoDevConfig
 from rovodev.modules.models import AVAILABLE_MODELS
 from rovodev.ui.components import Choice, user_menu_panel_sync
 
-TERMS_AND_CONDITIONS = """\
-[bold]Important information[/bold]
-By selecting "I agree", you agree to the Privacy Policy and that use of Rovo Dev Agents is governed by the Cloud Terms \
-of Service. Rovo Dev Agents is considered to be a "Free or Beta Product" under Section 17 of the Atlassian Customer \
-Agreement.
+# TERMS_AND_CONDITIONS = """...""" # Removed Atlassian-specific T&C
 
-When using Rovo Dev, you must follow our Acceptable Use Policy. You are responsible for following any terms and \
-policies about the use of data from third-party products.
-
-Atlassian Customer Agreement: [blue bold underline]https://www.atlassian.com/legal/atlassian-customer-agreement\
-[/blue bold underline]
-Privacy Policy: [blue bold underline]https://www.atlassian.com/legal/privacy-policy[/blue bold underline]
-Acceptable Use Policy: [blue bold underline]https://www.atlassian.com/legal/acceptable-use-policy[/blue bold underline]\
-"""
-
-
-def accept_terms_and_conditions() -> bool:
-    """Prompt the user to accept the terms and conditions.
-
-    If the user does not accept, the program will exit.
-    """
-    choice = user_menu_panel_sync(
-        message=TERMS_AND_CONDITIONS,
-        choices=[Choice(name="I agree", value=True), Choice(name="Exit", value=False)],
-        title="Terms and conditions",
-    )
-    if not choice:
-        sys.exit(0)
-    return choice
+# def accept_terms_and_conditions() -> bool: # Removed Atlassian-specific T&C
+#     """Prompt the user to accept the terms and conditions.
+#
+#     If the user does not accept, the program will exit.
+#     """
+#     choice = user_menu_panel_sync(
+#         message=TERMS_AND_CONDITIONS,
+#         choices=[Choice(name="I agree", value=True), Choice(name="Exit", value=False)],
+#         title="Terms and conditions",
+#     )
+#     if not choice:
+#         sys.exit(0)
+#     return choice
 
 
-def load_config(config_file: str) -> RovoDevConfig:
+def load_config(config_file: str) -> AIAgentConfig: # Changed RovoDevConfig
     """Load the configuration file."""
     config_path = Path(config_file)
     if not config_path.exists() or not config_path.read_text().strip():
         is_new_config = True
-        # accept_terms_and_conditions()
+        # accept_terms_and_conditions() # Call removed, T&C removed
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        config = RovoDevConfig()
+        config = AIAgentConfig() # Changed RovoDevConfig
     else:
         is_new_config = False
         config_dict = yaml.safe_load(config_path.read_text()) or {}
@@ -71,7 +57,7 @@ def load_config(config_file: str) -> RovoDevConfig:
                     config_section[subkey] = {}
                     config_section = config_section[subkey]
                 config_section[subkeys[-1]] = value
-        config = RovoDevConfig.model_validate(config_dict)
+        config = AIAgentConfig.model_validate(config_dict) # Changed RovoDevConfig
 
     # Expand any tilde paths in the configuration
     config.sessions.persistence_dir = str(Path(config.sessions.persistence_dir).expanduser())
@@ -81,25 +67,28 @@ def load_config(config_file: str) -> RovoDevConfig:
         save_config(config, config_file)
 
     assert config.agent.model_id in AVAILABLE_MODELS, f"Model should be one of {AVAILABLE_MODELS}"
-    if USER_API_TOKEN:
-        nemo.AUTH_METHOD = "api_token"
+    # Simplified nemo auth setup - user may need to configure this further for their needs
+    if USER_API_TOKEN and USER_EMAIL:
+        nemo.AUTH_METHOD = "api_token" # Assuming "api_token" is a generic method in nemo
         nemo.USER_EMAIL = USER_EMAIL
         nemo.USER_API_TOKEN = USER_API_TOKEN
-        nemo.CLOUD_ID = "unknown"  # For API token users
-    elif PIPELINES_JWT_TOKEN:
-        nemo.AUTH_METHOD = "pipelines"
-        nemo.PIPELINES_JWT_TOKEN = PIPELINES_JWT_TOKEN
-        # Set CLOUD_ID for internal users to match AI Gateway default
-        nemo.CLOUD_ID = "a436116f-02ce-4520-8fbb-7301462a1674"  # Default AI Gateway cloud ID
+        # nemo.CLOUD_ID = "unknown" # CLOUD_ID might be Atlassian specific, commenting out
+    # elif PIPELINES_JWT_TOKEN: # Removed Atlassian specific pipeline auth
+    #     nemo.AUTH_METHOD = "pipelines"
+    #     nemo.PIPELINES_JWT_TOKEN = PIPELINES_JWT_TOKEN
+    #     # Set CLOUD_ID for internal users to match AI Gateway default
+    #     # nemo.CLOUD_ID = "a436116f-02ce-4520-8fbb-7301462a1674"  # Default AI Gateway cloud ID
     else:
-        nemo.AUTH_METHOD = "slauth"
+        # nemo.AUTH_METHOD = "slauth" # "slauth" is likely Atlassian specific, commenting out
+        # If no specific auth method is set, nemo might have a default or require user configuration
+        pass
         # Set CLOUD_ID for internal users to match AI Gateway default
-        nemo.CLOUD_ID = "a436116f-02ce-4520-8fbb-7301462a1674"  # Default AI Gateway cloud ID
+        # nemo.CLOUD_ID = "a436116f-02ce-4520-8fbb-7301462a1674"  # Default AI Gateway cloud ID
 
     return config
 
 
-def save_config(config: RovoDevConfig, config_file: str) -> None:
+def save_config(config: AIAgentConfig, config_file: str) -> None: # Changed RovoDevConfig
     """Save the configuration file."""
     config_path = Path(config_file)
     config_yaml = yaml.safe_dump(
@@ -123,23 +112,26 @@ def load_mcp_servers_from_json(mcp_config_path: str | Path) -> list[MCPServerHTT
         return []
     with mcp_config_path.open("r") as f:
         mcp_servers_config = json.load(f)
-    if mcp_servers_config and USER_API_TOKEN and USER_EMAIL:
-        server_dict = {
-            key: value
-            for key, value in mcp_servers_config["mcpServers"].items()
-            if not any(
-                s in str(value)
-                for s in [
-                    "mcp.atlassian.com/v1/sse",
-                    "mcp.atlassian.com/v1/native/sse",
-                    "atlassian-remote-mcp-staging.atlassian-remote-mcp-server-staging.workers.dev/v1/native/sse",
-                    "mcp.atlassian.com/v1/mcp",
-                    "mcp.atlassian.com/v1/native/mcp",
-                    "atlassian-remote-mcp-staging.atlassian-remote-mcp-server-staging.workers.dev/v1/native/mcp",
-                ]
-            )
-        }
-        mcp_servers_config["mcpServers"] = server_dict
+    # Removed Atlassian-specific filtering of MCP servers
+    # if mcp_servers_config and USER_API_TOKEN and USER_EMAIL:
+    #     server_dict = {
+    #         key: value
+    #         for key, value in mcp_servers_config["mcpServers"].items()
+    #         if not any(
+    #             s in str(value)
+    #             for s in [
+    #                 "mcp.atlassian.com/v1/sse",
+    #                 "mcp.atlassian.com/v1/native/sse",
+    #                 "atlassian-remote-mcp-staging.atlassian-remote-mcp-server-staging.workers.dev/v1/native/sse",
+    #                 "mcp.atlassian.com/v1/mcp",
+    #                 "mcp.atlassian.com/v1/native/mcp",
+    #                 "atlassian-remote-mcp-staging.atlassian-remote-mcp-server-staging.workers.dev/v1/native/mcp",
+    #             ]
+    #         )
+    #     }
+    #     mcp_servers_config["mcpServers"] = server_dict
+    if not mcp_servers_config or "mcpServers" not in mcp_servers_config:
+        return []
     return list(MCPServersFileConfig.model_validate(mcp_servers_config).mcp_servers.values())
 
 
@@ -148,7 +140,7 @@ def add_yaml_config_documentation(config_yaml: str) -> str:
     if not config_yaml.strip():
         return config_yaml
 
-    descriptions = get_field_descriptions(RovoDevConfig)
+    descriptions = get_field_descriptions(AIAgentConfig) # Changed RovoDevConfig
     lines = config_yaml.split("\n")
     documented_lines = []
     key_stack = []  # Track nested keys

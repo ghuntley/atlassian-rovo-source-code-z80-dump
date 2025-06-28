@@ -21,22 +21,22 @@ def mock_requests():
         yield mock_post
 
 
-def test_is_internal_detection():
-    """Test internal user detection based on email domain."""
-    with patch("requests.post") as mock_post:
-        # Mock successful response
+def test_is_internal_default_value(): # Renamed test
+    """Test that is_internal defaults to False as Statsig/domain check is removed."""
+    with patch("requests.post") as mock_post: # Mock requests.post even if not used by new logic, to keep test structure
+        # Mock successful response (though its content for is_internal is ignored by new logic)
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"value": {"model_id": ["test-model", "test-model-2"], "banned": False}}
         mock_post.return_value = mock_response
 
-        # Test internal user
-        internal_config = DynamicConfiguration("test@atlassian.com")
-        assert internal_config.config().is_internal is True
+        # Test with an @atlassian.com style email
+        internal_style_email_config = DynamicConfiguration("test@atlassian.com")
+        assert internal_style_email_config.config().is_internal is False # Should now be False
 
-        # Test external user
-        external_config = DynamicConfiguration("test@example.com")
-        assert external_config.config().is_internal is False
+        # Test with an external style email
+        external_email_config = DynamicConfiguration("test@example.com")
+        assert external_email_config.config().is_internal is False # Remains False
 
 
 def test_model_id_from_config():

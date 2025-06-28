@@ -31,11 +31,11 @@ from rovodev.common import dynamic_configuration
 from rovodev.common.agent import create_agent_factory
 from rovodev.common.banner import BANNER
 from rovodev.common.config import load_config
-from rovodev.common.config_model import RovoDevConfig
-from rovodev.common.exceptions import RateLimitExceededError, RequestTooLargeError, RovoDevError
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
+from rovodev.common.exceptions import RateLimitExceededError, RequestTooLargeError, AIAgentError # Changed RovoDevError
 from rovodev.modules.adaptive_fallback_model import AdaptiveFallbackModel
-from rovodev.modules.analytics import initialize_analytics
-from rovodev.modules.analytics.instrumentation.session import track_session_created, track_session_restored
+# from rovodev.modules.analytics import initialize_analytics # Removed
+# from rovodev.modules.analytics.instrumentation.session import track_session_created, track_session_restored # Removed
 from rovodev.modules.instructions import handle_instructions_command
 from rovodev.modules.logging import setup_logging
 from rovodev.modules.mcp_utils import run_mcp_servers_with_error_handling
@@ -54,7 +54,7 @@ BANNER_TEMPLATE = f"""\
 
 Here are some quick tips:
 
-• Ask Rovo Dev anything in your own words - from "explain this repo" to "add unit tests".
+• Ask AI Agent anything in your own words - from "explain this repo" to "add unit tests".
 • Type "/" at any time to see available commands.
 • Use CTRL+C to interrupt the agent during generation.
 • Use /exit to quit.
@@ -62,34 +62,35 @@ Here are some quick tips:
 Working in [blue bold]{{root_path}}[/blue bold]
 """
 
-INTERNAL_PROMPT_COLLECTION = """
-INTERNAL USE: Your prompts will be recorded to help us improve answer quality. Turn off prompt collection with the \
-logging.enablePromptCollection flag in the config file.
-"""
+# INTERNAL_PROMPT_COLLECTION = """...""" # Removed as it's Atlassian-specific internal use message
 
 HOME_DIR_WARNING = """\
-[red]WARNING: You are running Rovo Dev in your home directory.
+[red]WARNING: You are running AI Agent in your home directory.
 This directory may be too large to process efficiently.
 Consider running in a more targeted directory for better results.[/red]\
-"""
+""" # Changed Rovo Dev
 
 FEEDBACK_TEMPLATE = """
-[bold]Leave feeback[/bold]
+[bold]Leave feedback[/bold]
 [bright_black]\
-Thank you for taking the time to leave feedback on Rovo Dev CLI. We will use your feedback to debug issues or improve \
+Thank you for taking the time to leave feedback on AI Agent CLI. We will use your feedback to debug issues or improve \
 the current functionality.[/bright_black]
 
 [nc bold]Report a bug[/nc bold]
-[blue underline]https://rovodevagents.atlassian.net/servicedesk/customer/portal/1/group/1/create/45?\
-description={encoded_version_info}[/blue underline]
 [bright_black]
-To help us with diagnosing your bug, please upload your log file to the bug report form:
-{log_file_path}[/bright_black]
+To report a bug, please open an issue on the project's issue tracker.
+Include your log file to help diagnose the problem:
+{log_file_path}
+Version Info:
+{version_info}
+[/bright_black]
 
 
 [nc bold]Leave feedback or ask questions[/nc bold]
-[blue underline]https://community.atlassian.com/forums/Rovo-Dev-Agents-Beta/gh-p/rovo-dev-ai-agents[/blue underline]
-"""
+[bright_black]
+Please use the project's discussion forum or issue tracker for feedback and questions.
+[/bright_black]
+""" # Genericized feedback, removed Atlassian links
 
 
 @registry.register(
@@ -98,11 +99,11 @@ To help us with diagnosing your bug, please upload your log file to the bug repo
     "View and select from available models.",
     """\
 [default bold]Model Selection[/default bold]
-This command allows you to view and switch between different AI models available for your Rovo Dev session.
+This command allows you to view and switch between different AI models available for your AI Agent session.
 
 The selected model will be used for all subsequent interactions until you restart the CLI or run the `/models` command \
 again.\
-""",
+""", # Changed Rovo Dev
     disable_for_external=True,
 )
 def model_command(*args, **kwargs) -> None:
@@ -123,7 +124,7 @@ def model_command(*args, **kwargs) -> None:
     "View and manage for agent sessions.",
     """\
 [default bold]Sessions[/default bold]
-Sessions allow you to maintain conversation history and context across multiple interactions with Rovo Dev.
+Sessions allow you to maintain conversation history and context across multiple interactions with AI Agent.
 
 Key features:
 • Session Management: Create, switch between, and manage multiple conversation sessions
@@ -131,8 +132,8 @@ Key features:
 • Workspace Isolation: Sessions are tied to specific workspaces for better organization
 • Session Forking: Create new sessions based on existing ones
 
-Sessions are automatically saved and can be restored when you restart Rovo Dev using the `--restore` flag.\
-""",
+Sessions are automatically saved and can be restored when you restart AI Agent using the `--restore` flag.\
+""", # Changed Rovo Dev
 )
 def session_command(*args, **kwargs) -> dict[str, Any] | None:
     persistence_dir = kwargs["persistence_dir"]
@@ -181,8 +182,8 @@ def clear_command(*args, **kwargs) -> dict[str, Any]:
             logger.warning(f"Failed to remove session directory: {session_path}")
 
     logger.bind(role="info").info("Session history cleared")
-    # Add instrumentation for new session creation
-    track_session_created(session_id)
+    # Add instrumentation for new session creation - REMOVED
+    # track_session_created(session_id) # Removed
     return {"continue": True, "message_history": None, "session_id": session_id}
 
 
@@ -265,14 +266,14 @@ Built-in instructions include:
 
 You can also create custom instructions by:
 
-1. Creating an instructions file at .rovodev/instuctions.yml:
+1. Creating an instructions file at .ai_agent/instructions.yml:
     ```yaml
     instructions:
       - name: my-custom-instruction
         description: My custom instruction description
         content_file: my_custom_instruction.md
     ```
-2. Writing the instruction content in a Markdown file in the .rovodev folder (e.g., `.rovodev/my_custom_instruction.md`)
+2. Writing the instruction content in a Markdown file in the .ai_agent folder (e.g., `.ai_agent/my_custom_instruction.md`)
 
 Usage:
 • `/instructions` - View and select from available instructions
@@ -292,11 +293,11 @@ def instruction_command(*args, **kwargs) -> dict:
     "Memory file management.",
     """\
 [default bold]Memory[/default bold]
-Memory files help Rovo Dev remember important information about your project and preferences.
+Memory files help AI Agent remember important information about your project and preferences.
 
 Types of memory:
 • Project Memory: Stored in your current directory (.agent.md and .agent.local.md)
-• User Memory: Global memory stored in your home directory (~/.rovodev/agent.md)
+• User Memory: Global memory stored in your home directory (~/.ai_agent/agent.md)
 
 Memory files are written in Markdown and can contain:
 • Project-specific context and conventions
@@ -326,10 +327,10 @@ def memory_user_command(*args, **kwargs) -> dict[str, str | None]:
     "Generate or update the current directory's memory file using AI.",
     """\
 [default bold]Memory Initialization[/default bold]
-This command uses Rovo Dev to automatically generate or update the current directory's memory file based on your \
+This command uses AI Agent to automatically generate or update the current directory's memory file based on your \
 project.
 
-Rovo Dev will analyze your codebase and create a memory file containing:
+AI Agent will analyze your codebase and create a memory file containing:
 • Coding patterns and conventions used in the project
 • Key dependencies and technologies
 • Important files and their purposes
@@ -343,7 +344,7 @@ def memory_init_command(*args, **kwargs) -> dict[str, str | None]:
     return {"message": message}
 
 
-@registry.register("#", None, "Add a note to Rovo Dev's local memory file.")
+@registry.register("#", None, "Add a note to AI Agent's local memory file.") # Changed Rovo Dev
 def memory_note_command(*args, **kwargs) -> None:
     agent_factory = kwargs["agent_factory"]
     agent = kwargs["agent"]
@@ -353,7 +354,7 @@ def memory_note_command(*args, **kwargs) -> None:
     return None
 
 
-@registry.register("#!", None, "Remove a note from Rovo Dev's local memory file.")
+@registry.register("#!", None, "Remove a note from AI Agent's local memory file.") # Changed Rovo Dev
 def memory_note_removal_command(*args, **kwargs) -> None:
     agent_factory = kwargs["agent_factory"]
     agent = kwargs["agent"]
@@ -363,9 +364,9 @@ def memory_note_removal_command(*args, **kwargs) -> None:
     return None
 
 
-@registry.register("/feedback", None, "Provide feedback or report a bug on Rovo Dev CLI.")
+@registry.register("/feedback", None, "Provide feedback or report a bug on AI Agent CLI.") # Changed Rovo Dev
 def feedback_command(*args, **kwargs) -> None:
-    config: RovoDevConfig = kwargs["config"]
+    config: AIAgentConfig = kwargs["config"] # Changed RovoDevConfig
     log_file_path = config.logging.path
     rich.print(
         FEEDBACK_TEMPLATE.format(
@@ -425,12 +426,13 @@ def run(
         ),
     ] = None,
 ):
-    """Run the Rovo Dev coding agent."""
+    """Run the AI coding agent.""" # Changed Rovo Dev
     console.print(BANNER_TEMPLATE.format(root_path=Path.cwd()), highlight=False)
     config = load_config(config_file)
 
-    if config.logging.enable_prompt_collection and IS_INTERNAL_USER:
-        console.print(INTERNAL_PROMPT_COLLECTION, highlight=False)
+    # Removed INTERNAL_PROMPT_COLLECTION display as it was Atlassian-specific
+    # if config.logging.enable_prompt_collection and IS_INTERNAL_USER:
+    #     console.print(INTERNAL_PROMPT_COLLECTION, highlight=False)
 
     # Initialize the logger before any logging occurs to prevent cluttering the UI
     setup_logging(
@@ -454,13 +456,13 @@ def run(
             handle_usage_command()
             return None
 
-    logger.info("Starting Rovo Dev CLI")
+    logger.info("Starting AI Agent CLI") # Changed Rovo Dev
     logger.info(f"Working directory: {Path.cwd()}")
     logger.info(f"Config file: {config_file}")
     logger.debug(config.model_dump_json(indent=2))
 
-    # Initialize analytics
-    initialize_analytics(__version__, config)
+    # Initialize analytics - REMOVED
+    # initialize_analytics(__version__, config)
 
     # Join message parts into a single string if provided
     if message and len(message) > 0:
@@ -497,13 +499,13 @@ def run(
                     )
                     # Add instrumentation for session restoration
                     logger.info(f"Restoring session with ID: {session_id}, title: {session_info.title}")
-                track_session_restored(session_id, title=session_info.title, num_messages=len(message_history))
+                # track_session_restored(session_id, title=session_info.title, num_messages=len(message_history)) # Removed
             else:
                 session_id = str(uuid.uuid4())
                 message_history = None
                 logger.info(f"Starting new session")
                 # Add instrumentation for new session creation
-                track_session_created(session_id)
+                # track_session_created(session_id) # Removed
 
             # Future iterations in the while loop are triggered by exceptions being raised, so we need to set this
             # to True to ensure the correct session is restored
@@ -523,9 +525,9 @@ def run(
             logger.bind(role="warning").warning("Agent interrupted")
         except typer.Exit:
             return
-        except RovoDevError as e:
+        except AIAgentError as e: # Changed RovoDevError
             logger.bind(role=e.role, title=e.title).error(e.message)
-            if IS_INTERNAL_USER:
+            if IS_INTERNAL_USER: # This will be False by default now
                 logger.exception(e)
             if isinstance(e, (RateLimitExceededError, RequestTooLargeError)):
                 continue
@@ -549,12 +551,12 @@ def run(
 
 async def arun(
     config_file: str,
-    config: RovoDevConfig,
+    config: AIAgentConfig, # Changed RovoDevConfig
     message: str | None,
     session_id: str,
     message_history: list[ModelMessage] | None,
 ) -> None:
-    """Async function to run the rovodev command."""
+    """Async function to run the rovodev command.""" # Docstring already generic enough
     prompt_session: PromptSession | None
     prompt_history: FilteredFileHistory | None
     if sys.stdin.isatty() and not message:

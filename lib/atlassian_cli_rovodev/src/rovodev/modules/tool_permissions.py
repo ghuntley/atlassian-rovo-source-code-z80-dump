@@ -10,7 +10,7 @@ from pydantic_ai.messages import ModelResponse, ToolCallPart
 
 from nemo.context import SessionContext
 from rovodev.common.config import load_config, save_config
-from rovodev.common.config_model import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed RovoDevConfig
 from rovodev.common.config_versions.v1 import BashCommandConfig
 from rovodev.ui.components import Choice, user_menu_panel_sync
 
@@ -19,9 +19,9 @@ PermissionScope = Literal["always", "session", "once"]
 
 
 class ToolPermissionManager:
-    """Tool permission manager for RovoDev CLI."""
+    """Tool permission manager for AI Agent CLI.""" # Changed RovoDev
 
-    def __init__(self, config: RovoDevConfig, config_path: str, interactive: bool = True) -> None:
+    def __init__(self, config: AIAgentConfig, config_path: str, interactive: bool = True) -> None: # Changed RovoDevConfig
         self._tool_permissions = config.tool_permissions
         self._config_path = config_path
         self._interactive = interactive and sys.stdin.isatty()

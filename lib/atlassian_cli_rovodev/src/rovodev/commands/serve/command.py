@@ -1,4 +1,4 @@
-"""The serve command handler for Rovo Dev CLI."""
+"""The serve command handler for AI Agent CLI.""" # Changed Rovo Dev
 
 from typing import Annotated
 
@@ -32,7 +32,7 @@ def serve(
         ),
     ] = None,
 ):
-    """Run RovoDev CLI in server mode."""
+    """Run AI Agent CLI in server mode.""" # Changed RovoDev
     rich.print(BANNER)
     config = load_config(config_file)
 

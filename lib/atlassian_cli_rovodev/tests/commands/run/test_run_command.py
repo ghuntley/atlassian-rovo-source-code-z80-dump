@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from rovodev.commands.run.command import clear_command, feedback_command
-from rovodev.common.config import RovoDevConfig
+from rovodev.common.config_model import AIAgentConfig # Changed import
 
 
 @pytest.fixture
@@ -129,7 +129,7 @@ def test_clear_command_removal_failure(mock_rmtree, mock_logger, mock_track_sess
 def test_feedback_command(mock_rich_print):
     """Test that feedback_command displays the correct feedback information."""
     # Act
-    feedback_command(config=RovoDevConfig())
+    feedback_command(config=AIAgentConfig()) # Changed RovoDevConfig
 
     # Verify that rich.print was called once
     mock_rich_print.assert_called_once()
@@ -138,6 +138,10 @@ def test_feedback_command(mock_rich_print):
     call_args = mock_rich_print.call_args[0]
     text = call_args[0]
 
-    # Verify that the panel contains feedback URLs
-    assert "https://rovodevagents.atlassian.net/servicedesk/customer/portal/1/group/1/create/45" in text
-    assert "https://community.atlassian.com/forums/Rovo-Dev-Agents-Beta/gh-p/rovo-dev-ai-agents" in text
+    # Verify that the panel contains generic feedback instructions
+    assert "project's issue tracker" in text
+    assert "discussion forum" in text
+    assert "AI Agent CLI" in text # Check for new branding
+    # Ensure old Atlassian links are NOT present
+    assert "https://rovodevagents.atlassian.net" not in text
+    assert "https://community.atlassian.com" not in text

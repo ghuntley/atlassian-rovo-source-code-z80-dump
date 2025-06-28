@@ -20,51 +20,48 @@ class DynamicConfigData:
 class DynamicConfiguration:
 
     def __init__(self, user_id: str, interval: int = 60):
-        self._user_id = user_id
-        self._interval = interval
-        self._config = self._get_config()
-        self._lock = threading.Lock()
-        thread = threading.Thread(target=self._refresh_config, daemon=True)
-        thread.start()
+        self._user_id = user_id # Kept for now, but Statsig is removed
+        # self._interval = interval # Not needed as refresh is disabled
+        # self._config = self._get_config() # Statsig call removed
+        # self._lock = threading.Lock() # Not needed for static config
+        # thread = threading.Thread(target=self._refresh_config, daemon=True) # Refresh thread removed
+        # thread.start()
+        logger.info("DynamicConfiguration: Statsig integration has been removed. Returning static default config.")
 
     def config(self) -> DynamicConfigData:
-        with self._lock:
-            try:
-                assert isinstance(self._config, dict)
-                values = self._config["value"]
-                return DynamicConfigData(
-                    model_id=values["model_id"],
-                    is_internal=self._user_id.endswith("@atlassian.com"),
-                    enable_efficient_agent=values.get("enable_efficient_agent", False),
-                    banned=values["banned"],
-                )
-            except:
-                return DynamicConfigData(
-                    model_id=[
-                        "anthropic:claude-sonnet-4@20250514",
-                        "bedrock:anthropic.claude-3-7-sonnet-20250219-v1:0",
-                        "anthropic:claude-3-5-sonnet-v2@20241022",
-                        "bedrock:anthropic.claude-3-5-sonnet-20241022-v2:0",
-                    ],
-                    is_internal=self._user_id.endswith("@atlassian.com"),
-                    enable_efficient_agent=False,
-                    banned=False,
-                )
+        # Return a static, default configuration as Statsig has been removed.
+        # The is_internal flag is now effectively controlled by IS_INTERNAL_USER in __init__.py
+        # For the purpose of this class, if it were to be used independently,
+        # it would need its own generic way to determine this.
+        # Here, we default to False as the Atlassian-specific check is removed.
+        return DynamicConfigData(
+            model_id=[ # Default model list
+                "anthropic:claude-sonnet-4@20250514",
+                "bedrock:anthropic.claude-3-7-sonnet-20250219-v1:0",
+                "anthropic:claude-3-5-sonnet-v2@20241022",
+                "bedrock:anthropic.claude-3-5-sonnet-20241022-v2:0",
+            ],
+            is_internal=False, # Was: self._user_id.endswith("@atlassian.com")
+            enable_efficient_agent=False, # Defaulting to False
+            banned=False # Defaulting to False
+        )
 
     def _refresh_config(self):
-        while True:
-            time.sleep(self._interval)
-            config = self._get_config()
-            with self._lock:
-                self._config = config
+        # This is now a no-op as Statsig integration is removed.
+        # while True:
+        #     time.sleep(self._interval)
+        #     config = self._get_config()
+        #     with self._lock:
+        #         self._config = config
+        pass
 
     def _get_config(
         self,
-        url: str = "https://api.statsig.com/v1/get_config",
-        api_key: str = "client-K86FOx7CB7wxvmrFeFOrGj7iRG2t7pC0EjBd5VUwi9Q",
-        config_name: str = "rovo_dev_cli_client_config",
-        max_retries: int = 5,
-        base_delay: float = 1.0,
+        url: str = "", # Was: "https://api.statsig.com/v1/get_config",
+        api_key: str = "", # Was: "client-K86FOx7CB7wxvmrFeFOrGj7iRG2t7pC0EjBd5VUwi9Q",
+        config_name: str = "", # Was: "rovo_dev_cli_client_config",
+        max_retries: int = 0, # Was: 5
+        base_delay: float = 1.0, # Unused
         max_delay: float = 10.0,
     ) -> dict | None:
         headers = {"statsig-api-key": api_key, "Content-Type": "application/json"}

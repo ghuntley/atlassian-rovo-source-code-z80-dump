@@ -1,4 +1,4 @@
-"""Custom exceptions and error handling for RovoDev CLI."""
+"""Custom exceptions and error handling for AI Agent CLI.""" # Changed RovoDev
 
 from typing import Any
 
@@ -8,8 +8,8 @@ from nemo.constants import DEFAULT_PANEL_WIDTH
 from nemo.utils import MCPServerHTTP, MCPServerStdio
 
 
-class RovoDevError(Exception):
-    """Base exception for RovoDev CLI errors."""
+class AIAgentError(Exception): # Changed RovoDevError
+    """Base exception for AI Agent CLI errors.""" # Changed RovoDev
 
     def __init__(self, message: str, title: str = "Error", role: str = "error"):
         super().__init__(message)
@@ -36,31 +36,28 @@ class EntitlementCheckFailed(RovoDevError):
         active_devai_sites = None
         entitlement_params = payload.get("additionalEntitlementParams")
         if entitlement_params:
-            active_devai_sites = entitlement_params.get("activeDevAiSites")
+        active_devai_sites = entitlement_params.get("activeDevAiSites") # This var might be unused now
         if status == "PRODUCT_NOT_INSTALLED":
             message = (
-                "To use Rovo Dev CLI, your organization administrator needs to install Rovo Dev Agents."
-                "\n\nVisit https://www.atlassian.com/try/cloud/signup?bundle=devai to request access."
+                "The required product/feature is not installed or enabled for your organization."
+                "\n\nPlease contact your organization administrator."
             )
-            title = "Rovo Dev Agents is not installed on your site"
+            title = "Feature Not Installed"
         elif status == "CLI_DISABLED":
-            if not active_devai_sites:
-                message = (
-                    "To use Rovo Dev CLI, your organization administrator needs to enable it in Rovo Dev Agents "
-                    "settings."
-                )
-            else:
-                message = (
-                    "To use Rovo Dev CLI, enable it in Rovo Dev Agents settings.\n\n"
-                    f"Visit: {active_devai_sites[0]}/dev-agents/rovo-dev-cli"
-                )
-            title = "Rovo Dev CLI is not enabled on your site"
+            message = (
+                "This CLI functionality is not enabled for your organization or user."
+                "\n\nPlease contact your organization administrator."
+            )
+            title = "CLI Not Enabled"
         elif status == "USER_NOT_AUTHORIZED":
             message = (
-                "To use Rovo Dev CLI, your organization administrator needs to add you to the rovo-dev-agents-users "
-                "permission group.\n\nRequest access from your organization administrator."
+                "You are not authorized to use this feature."
+                "\n\nPlease contact your organization administrator for required permissions."
             )
-            title = "You need Rovo Dev Agents user permissions to use Rovo Dev CLI"
+            title = "User Not Authorized"
+        else:
+            message = "An entitlement or permission check failed. Please contact your administrator."
+            title = "Entitlement Check Failed"
         super().__init__(title=title, message=message, role="warning")
 
 
@@ -130,8 +127,7 @@ class MCPServerBuiltinError(MCPServerError):
         super().__init__(
             title="Failed to start built-in MCP server",
             message=(
-                "If you continue to see this error, please report it to the Rovo Dev team: "
-                "[blue underline]https://rovodevagents.atlassian.net/servicedesk/customer/portal/1/group/1/create/45[/blue underline]"
+                "If you continue to see this error, please check your configuration or contact support."
             ),
             mcp_server=mcp_server,
         )
